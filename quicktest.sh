@@ -1,2 +1,2 @@
 #!/bin/bash
-curl -vvv 52.14.227.202:8080
+curl -vvv $(terraform output -raw ptg-generated-public-ip):8080
