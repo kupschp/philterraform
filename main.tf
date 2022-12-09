@@ -15,7 +15,7 @@ resource "aws_instance" "ptg-instance" {
   user_data = <<-EOF
               #!/bin/bash
               echo "Philtest hello!" > index.html
-              nohup busybox httpd -f -p 8080 &
+              nohup busybox httpd -f -p ${var.ptg-web-port} &
               EOF
 
   #termiantes and creates new instance once startup script(user_data) has been changed
@@ -26,9 +26,15 @@ resource "aws_security_group" "ptg-allow-web-traffic" {
   name = "ptg-allow-web-traffic"
 
   ingress {
-    from_port = 8080
-    to_port   = 8080
+    from_port = var.ptg-web-port
+    to_port   = var.ptg-web-port
     protocol  = "tcp"
     cidr_blocks = ["0.0.0.0/0"] 
   }
+}
+
+variable "ptg-web-port" {
+  description = "Port to listen and allow for web traffic"
+  type        = number
+  default     = 8080
 }
