@@ -9,4 +9,14 @@ resource "aws_instance" "example" {
   tags = {
     Name = "ptg-instance"
   }
+
+  #user_data is a boot startup script in ec2(virtual machienes) terminology for aws
+  user_data = <<-EOF
+              #!/bin/bash
+              echo "Philtest hello!" > index.html
+              nohup busybox httpd -f -p 8080 &
+              EOF
+
+  #termiantes and creates new instance once startup script(user_data) has been changed
+  user_data_replace_on_change = true
 }
