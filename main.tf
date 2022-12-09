@@ -38,3 +38,8 @@ variable "ptg-web-port" {
   type        = number
   default     = 8080
 }
+
+output "ptg-generated-public-ip" {
+  description = "ephemeral public ip generated from ptginstance"
+  value       = aws_instance.ptg-instance.public_ip
+}
