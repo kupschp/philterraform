@@ -20,3 +20,14 @@ resource "aws_instance" "example" {
   #termiantes and creates new instance once startup script(user_data) has been changed
   user_data_replace_on_change = true
 }
+
+resource "aws_security_group" "instance" {
+  name = "ptg-allow-web-traffic"
+
+  ingress {
+    from_port = 8080
+    to_port   = 8080
+    protocol  = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
+}
