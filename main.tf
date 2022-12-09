@@ -2,14 +2,11 @@ provider "aws" {
   region = "us-east-2"
 }
 
-resource "aws_instance" "ptg-instance" {
-  ami = "ami-0fb653ca2d3203ac1"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.ptg-allow-web-traffic.id]
-
-  tags = {
-    Name = "ptg-instance"
-  }
+#image used for vm cluster
+resource "aws_launch_configuration" "ptg-image-template" {
+  image_id        = "ami-0fb653ca2d3203ac1"
+  instance_type   = "t2.micro"
+  security_groups = [aws_security_group.ptg-allow-web-traffic.id]
 
   #user_data is a boot startup script in ec2(virtual machienes) terminology for aws
   user_data = <<-EOF
@@ -18,8 +15,25 @@ resource "aws_instance" "ptg-instance" {
               nohup busybox httpd -f -p ${var.ptg-web-port} &
               EOF
 
-  #termiantes and creates new instance once startup script(user_data) has been changed
-  user_data_replace_on_change = true
+  #so that terraform will not destroy first, it creates new instances first before destroying the old one
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+#launch instances from ptg image template
+resource "aws_autoscaling_group" "ptg-mig" {
+  launch_configuration = aws_launch_configuration.ptg-image-template.name
+  vpc_zone_identifier = data.aws_subnets.ptg-subnets.ids
+
+  min_size = 2
+  max_size = 4
+  
+  tag {
+    key                 = "Name"
+    value               = "ptg-webservers"
+    propagate_at_launch = true
+  }
 }
 
 resource "aws_security_group" "ptg-allow-web-traffic" {
@@ -39,7 +53,14 @@ variable "ptg-web-port" {
   default     = 8080
 }
 
-output "ptg-generated-public-ip" {
-  description = "ephemeral public ip generated from ptginstance"
-  value       = aws_instance.ptg-instance.public_ip
+#data is used to query provider api, for this example it's to get the default vpc
+data "aws_vpc" "ptg-vpc" {
+  default = true
+}
+
+data "aws_subnets" "ptg-subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.ptg-vpc.id] 
+  }
 }
