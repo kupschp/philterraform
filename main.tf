@@ -26,6 +26,9 @@ resource "aws_autoscaling_group" "ptg-mig" {
   launch_configuration = aws_launch_configuration.ptg-image-template.name
   vpc_zone_identifier = data.aws_subnets.ptg-subnets.ids
 
+  target_group_arns = [aws_lb_target_group.ptg-tg.arn]
+  health_check_type = "ELB"
+
   min_size = 2
   max_size = 4
   
@@ -107,4 +110,43 @@ resource "aws_security_group" "ptg-alb-sg" {
      protocol    = "-1"
      cidr_blocks = ["0.0.0.0/0"] 
    }
+}
+
+resource "aws_lb_target_group" "ptg-tg" {
+  name     = "ptg-tg"
+  port     = var.ptg-web-port
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.ptg-vpc.id
+
+  health_check {
+    path                = "/"
+    protocol            = "HTTP"
+    matcher             = "200"
+    interval            = 15
+    timeout             = 3
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  } 
+}
+
+resource "aws_lb_listener_rule" "ptg-alb-listener" {
+  listener_arn =   aws_lb_listener.http.arn
+  priority     = 100
+
+  condition {
+    path_pattern {
+      values = ["*"]
+    }
+  }
+
+  action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.ptg-tg.arn
+  }
+}
+
+output "ptg_alb_dns_name" {
+  value = aws_lb.ptg-alb.dns_name
+  description = "alb's domain name"
+  
 }
