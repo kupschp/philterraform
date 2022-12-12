@@ -69,6 +69,7 @@ resource "aws_lb" "ptg-alb" {
   name               = "ptg-alb"
   load_balancer_type = "application"
   subnets            = data.aws_subnets.ptg-subnets.ids
+  security_groups = [aws_security_group.ptg-alb-sg.id]
 }
 
 resource "aws_lb_listener" "http" {
@@ -86,4 +87,24 @@ resource "aws_lb_listener" "http" {
       status_code  = 404
     }
   }
+}
+
+resource "aws_security_group" "ptg-alb-sg" {
+   name = "ptg-alb-sg"
+
+   #allow inbound http req
+   ingress {
+     from_port = 80
+     to_port   = 80
+     protocol  = "tcp"
+     cidr_blocks = ["0.0.0.0/0"]
+   }
+
+   #allow all outbounds
+   egress {
+     from_port   = 0
+     to_port     = 0
+     protocol    = "-1"
+     cidr_blocks = ["0.0.0.0/0"] 
+   }
 }
