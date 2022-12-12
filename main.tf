@@ -1,13 +1,9 @@
-#terraform {
-#  backend "s3" {
-#    bucket = "ptg-tfstate"
-#    key = "global/s3/terraform.tfstate"
-#    region = "us-east-2"
-
-#    dynamodb_table = "ptg-tflocks"
-#    encrypt = true
-#  }
-#}
+#use terraform init -backend-config=backend.hcl
+terraform {
+  backend "s3" {
+    key = "global/s3/terraform.tfstate"
+  }
+}
 
 provider "aws" {
   region = "us-east-2"
@@ -17,9 +13,9 @@ provider "aws" {
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "ptg-tfstate"
 
-  #lifecycle {
-  #  prevent_destroy = true
-  #}
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 #enable versioning
