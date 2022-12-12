@@ -1,2 +1,2 @@
 #!/bin/bash
-curl -vvv $(terraform output -raw ptg-generated-public-ip):8080
+curl -vvv $(terraform output -raw ptg_alb_dns_name)
