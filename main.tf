@@ -64,3 +64,26 @@ data "aws_subnets" "ptg-subnets" {
     values = [data.aws_vpc.ptg-vpc.id] 
   }
 }
+
+resource "aws_lb" "ptg-alb" {
+  name               = "ptg-alb"
+  load_balancer_type = "application"
+  subnets            = data.aws_subnets.ptg-subnets.ids
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arm = aws_lb.ptg-alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  # default return 404
+  default_action {
+    type = "not_found_response"
+    
+    not_found_response {
+      content_type = "text/plain"
+      message_body = "404 pagenotfound"
+      status_code  = 404
+    }
+  }
+}
