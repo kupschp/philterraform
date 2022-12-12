@@ -78,7 +78,7 @@ resource "aws_lb_listener" "http" {
 
   # default return 404
   default_action {
-    type = "fixed_response"
+    type = "fixed-response"
     
     fixed_response {
       content_type = "text/plain"
