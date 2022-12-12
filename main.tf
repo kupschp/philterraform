@@ -72,15 +72,15 @@ resource "aws_lb" "ptg-alb" {
 }
 
 resource "aws_lb_listener" "http" {
-  load_balancer_arm = aws_lb.ptg-alb.arn
+  load_balancer_arn = aws_lb.ptg-alb.arn
   port              = 80
   protocol          = "HTTP"
 
   # default return 404
   default_action {
-    type = "not_found_response"
+    type = "fixed_response"
     
-    not_found_response {
+    fixed_response {
       content_type = "text/plain"
       message_body = "404 pagenotfound"
       status_code  = 404
