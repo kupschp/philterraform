@@ -5,11 +5,11 @@ resource "aws_launch_configuration" "ptg-image-template" {
   security_groups = [aws_security_group.ptg-allow-web-traffic.id]
 
   #user_data is a boot startup script in ec2(virtual machienes) terminology for aws
-  user_data = <<-EOF
-              #!/bin/bash
-              echo "Philtest hello!" > index.html
-              nohup busybox httpd -f -p ${var.ptg-web-port} &
-              EOF
+  user_data = templatefile("dumb-web.sh", {
+    server_port = var.ptg-web-port
+    db_address = data.terraform_remote_state.db.outputs.address
+    db_port = data.terraform_remote_state.db.outputs.port
+  })
 
   #so that terraform will not destroy first, it creates new instances first before destroying the old one
   lifecycle {
