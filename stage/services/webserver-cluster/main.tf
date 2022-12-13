@@ -1,13 +1,3 @@
-terraform {
-  backend "s3" {
-    key = "stage/services/webserver-cluster/terraform.tfstate"
-  }
-}
-
-provider "aws" {
-  region = "us-east-2"
-}
-
 #image used for vm cluster
 resource "aws_launch_configuration" "ptg-image-template" {
   image_id        = "ami-0fb653ca2d3203ac1"
@@ -53,18 +43,6 @@ resource "aws_security_group" "ptg-allow-web-traffic" {
     to_port   = var.ptg-web-port
     protocol  = "tcp"
     cidr_blocks = ["0.0.0.0/0"] 
-  }
-}
-
-#data is used to query provider api, for this example it's to get the default vpc
-data "aws_vpc" "ptg-vpc" {
-  default = true
-}
-
-data "aws_subnets" "ptg-subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.ptg-vpc.id] 
   }
 }
 
