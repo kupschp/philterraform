@@ -1,3 +1,14 @@
+terraform {
+  backend "s3" {
+    key = "global/s3/terraform.tfstate"
+  }
+}
+
+provider "aws" {
+  region = "us-east-2"
+}
+
+
 #create bucket and disable deletion
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "ptg-tfstate"

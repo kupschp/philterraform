@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    key = "global/s3/terraform.tfstate"
+  }
+}
+
+provider "aws" {
+  region = "us-east-2"
+}
+
 #create dynamodb for terraform lock - a nosql key:value storage
 resource "aws_dynamodb_table" "terraform_locks" {
   name = "ptg-tflocks"

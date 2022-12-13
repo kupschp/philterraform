@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    key = "global/s3/terraform.tfstate"
+  }
+}
+
+provider "aws" {
+  region = "us-east-2"
+}
+
 #image used for vm cluster
 resource "aws_launch_configuration" "ptg-image-template" {
   image_id        = "ami-0fb653ca2d3203ac1"
