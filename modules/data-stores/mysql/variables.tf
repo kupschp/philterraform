@@ -9,3 +9,8 @@ variable "ptg_db_password" {
   type = string
   sensitive = true
 }
+
+variable "db_instance_type" {
+  description = "db instance type"
+  type = string
+}
