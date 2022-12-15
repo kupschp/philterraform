@@ -6,7 +6,7 @@ resource "aws_launch_configuration" "ptg-image-template" {
 
   #user_data is a boot startup script in ec2(virtual machienes) terminology for aws
   user_data = templatefile("${path.module}/dumb-web.sh", {
-    server_port = var.ptg-web-port
+    server_port = local.listen_port
     db_address = data.terraform_remote_state.db.outputs.address
     db_port = data.terraform_remote_state.db.outputs.port
   })
@@ -39,8 +39,8 @@ resource "aws_security_group" "ptg-allow-web-traffic" {
   name = "${var.cluster_name}-allow-web-traffic"
 
   ingress {
-    from_port = local.instance_listen_port
-    to_port   = local.instance_listen_port
+    from_port = local.listen_port
+    to_port   = local.listen_port
     protocol  = local.tcp_protocol
     cidr_blocks = local.all_ips
   }
@@ -98,7 +98,7 @@ resource "aws_lb_listener" "http" {
 
 resource "aws_lb_target_group" "ptg-tg" {
   name     = "${var.cluster_name}-tg"
-  port     = local.instance_listen_port
+  port     = local.listen_port
   protocol = local.http_protocol
   vpc_id   = data.aws_vpc.ptg-vpc.id
 

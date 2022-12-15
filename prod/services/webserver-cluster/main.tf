@@ -2,7 +2,7 @@ module "webserver_cluster" {
   source = "../../../modules/services/webserver-cluster"
 
   cluster_name = "prod-ptg-webservers"
-  db_remote_state_bucket = "prod-ptg-tfstate"
+  db_remote_state_bucket = "ptg-tfstate"
   db_remote_state_key = "prod/data-stores/mysql/terraform.tfstate"
 
   instance_type = "t2.medium"
