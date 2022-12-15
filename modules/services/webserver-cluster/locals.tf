@@ -7,5 +7,5 @@ locals {
   tcp_protocol = "tcp"
   http_protocol = "HTTP"
   all_ips = ["0.0.0.0/0"]
-  listen_port = 8080
+  server_port = 8080
 }

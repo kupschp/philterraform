@@ -2,11 +2,11 @@
 resource "aws_launch_configuration" "ptg-image-template" {
   image_id        = var.instance_image
   instance_type   = var.instance_type
-  security_groups = [aws_security_group.ptg-allow-web-traffic.id]
+  security_groups = [aws_security_group.ptg-instance-sg.id]
 
   #user_data is a boot startup script in ec2(virtual machienes) terminology for aws
   user_data = templatefile("${path.module}/dumb-web.sh", {
-    server_port = local.listen_port
+    server_port = local.server_port
     db_address = data.terraform_remote_state.db.outputs.address
     db_port = data.terraform_remote_state.db.outputs.port
   })
@@ -35,40 +35,43 @@ resource "aws_autoscaling_group" "ptg-mig" {
   }
 }
 
-resource "aws_security_group" "ptg-allow-web-traffic" {
-  name = "${var.cluster_name}-allow-web-traffic"
+resource "aws_security_group" "ptg-instance-sg" {
+  name = "${var.cluster_name}-instance-sg"
+}
 
-  ingress {
-    from_port = local.listen_port
-    to_port   = local.listen_port
-    protocol  = local.tcp_protocol
-    cidr_blocks = local.all_ips
-  }
+#previously, it was inline igress{} and egress{} block inside of ptg-alb-sg resource, disadvantage unreusable
+#separate these ingress and egress block into it_s own resource block for reusability by returning output in-order for anyone who revokes this module to reuse the value returned
+resource "aws_security_group_rule" "instance_allow_http_inbound" {
+  type = "ingress"
+  security_group_id = aws_security_group.ptg-instance-sg.id
+
+  from_port = local.server_port
+  to_port   = local.server_port
+  protocol  = local.tcp_protocol
+  cidr_blocks = local.all_ips
 }
 
 resource "aws_security_group" "ptg-alb-sg" {
    name = "${var.cluster_name}-alb-sg"
 }
 
-#previously, it was inline igress{} and egress{} block inside of ptg-alb-sg resource, disadvantage unreusable
-#separate these ingress and egress block into it_s own resource block for reusability by returning output in-order for anyone who revokes this module to reuse the value returned
-resource "aws_security_group_rule" "allow_http_inbound" {
+resource "aws_security_group_rule" "alb_allow_http_inbound" {
   type = "ingress"
   security_group_id = aws_security_group.ptg-alb-sg.id
 
   from_port = local.http_port
-  to_port   = local.http_port
-  protocol  = local.tcp_protocol
+  to_port = local.http_port
+  protocol = local.tcp_protocol
   cidr_blocks = local.all_ips
 }
 
-resource "aws_security_group_rule" "allow_http_outbound" {
+resource "aws_security_group_rule" "alb_allow_all_outbound" {
   type = "egress"
   security_group_id = aws_security_group.ptg-alb-sg.id
 
-  from_port = local.http_port
-  to_port   = local.http_port
-  protocol  = local.tcp_protocol
+  from_port = local.any_port
+  to_port   = local.any_port
+  protocol  = local.any_protocol
   cidr_blocks = local.all_ips
 }
 
@@ -98,7 +101,7 @@ resource "aws_lb_listener" "http" {
 
 resource "aws_lb_target_group" "ptg-tg" {
   name     = "${var.cluster_name}-tg"
-  port     = local.listen_port
+  port     = local.server_port
   protocol = local.http_protocol
   vpc_id   = data.aws_vpc.ptg-vpc.id
 
