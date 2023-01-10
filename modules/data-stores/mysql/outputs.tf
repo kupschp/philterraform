@@ -1,9 +1,9 @@
 output "address" {
-  value = module.database_instance.address
+  value = aws_db_instance.ptg-db.address
   description = "database endpoint address"
 }
 
 output "port" {
-  value = module.database_instance.port
+  value = aws_db_instance.ptg-db.port
   description = "database listening port"
 }
